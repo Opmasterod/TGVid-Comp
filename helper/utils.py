@@ -186,35 +186,43 @@ async def CompressVideo(bot, query, ffmpegcode, c_thumb):
     UID = query.from_user.id
     ms = await query.message.edit('Pʟᴇᴀsᴇ Wᴀɪᴛ...\n\n**Fᴇᴛᴄʜɪɴɢ Qᴜᴇᴜᴇ 👥**')
     
+    # Check for ffmpeg/{UID} and encode/{UID} existence with retries
+    max_retries = 5
+    retry_count = 0
+    while retry_count < max_retries:
+        if os.path.isdir(f'ffmpeg/{UID}') or os.path.isdir(f'encode/{UID}'):
+            await ms.edit(f"⚠️ **Compression already in progress for user {UID}.**\n\n🔄 Retrying in 30 seconds...")
+            await asyncio.sleep(30)
+            retry_count += 1
+        else:
+            break
 
-    if os.path.isdir(f'ffmpeg/{UID}') and os.path.isdir(f'encode/{UID}'):
-        return await ms.edit("**⚠️ Yᴏᴜ ᴄᴀɴ ᴄᴏᴍᴘʀᴇss ᴏɴʟʏ ᴏɴᴇ ғɪʟᴇ ᴀᴛ ᴀ ᴛɪᴍᴇ\n\nAs ᴛʜɪs ʜᴇʟᴘs ʀᴇᴅᴜᴄᴇ sᴇʀᴠᴇʀ ʟᴏᴀᴅ.**")
+    if retry_count == max_retries:
+        return await ms.edit("⚠️ **Failed to start compression as directories are still in use after multiple retries.**")
 
     try:
+        # Continue with the original compression process
         media = query.message.reply_to_message
-        file = getattr(media , media.media.value)
+        file = getattr(media, media.media.value)
         filename = Filename(filename=str(file.file_name), mime_type=str(file.mime_type))
         Download_DIR = f"ffmpeg/{UID}"
         Output_DIR = f"encode/{UID}"
         File_Path = f"ffmpeg/{UID}/{filename}"
         Output_Path = f"encode/{UID}/{filename}"
-        
-        
+
         await ms.edit('⚠️__**Please wait...**__\n**Tʀyɪɴɢ Tᴏ Dᴏᴡɴʟᴏᴀᴅɪɴɢ....**')
         s = dt.now()
-        try:
-            if not os.path.isdir(Download_DIR) and not os.path.isdir(Output_DIR):
-                os.makedirs(Download_DIR)
-                os.makedirs(Output_DIR)
+        
+        if not os.path.isdir(Download_DIR) and not os.path.isdir(Output_DIR):
+            os.makedirs(Download_DIR)
+            os.makedirs(Output_DIR)
 
-                dl = await bot.download_media(
-                    message=file,
-                    file_name=File_Path,
-                    progress=progress_for_pyrogram,
-                    progress_args=("\n⚠️__**Please wait...**__\n\n☃️ **Dᴏᴡɴʟᴏᴀᴅ Sᴛᴀʀᴛᴇᴅ....**", ms, time.time())
-                )
-        except Exception as e:
-            return await ms.edit(str(e))
+            dl = await bot.download_media(
+                message=file,
+                file_name=File_Path,
+                progress=progress_for_pyrogram,
+                progress_args=("\n⚠️__**Please wait...**__\n\n☃️ **Dᴏᴡɴʟᴏᴀᴅ Sᴛᴀʀᴛᴇᴅ....**", ms, time.time())
+            )
         
         es = dt.now()
         dtime = ts(int((es - s).seconds) * 1000)
@@ -232,52 +240,42 @@ async def CompressVideo(bot, query, ffmpegcode, c_thumb):
         process = await asyncio.create_subprocess_shell(
             cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
-        
-
         stdout, stderr = await process.communicate()
         er = stderr.decode()
 
-        try:
-            if er:
-                await ms.edit(str(er) + "\n\n**Error**")
-                shutil.rmtree(f"ffmpeg/{UID}")
-                shutil.rmtree(f"encode/{UID}")
-                return
-        except BaseException:
-            pass
+        if er:
+            await ms.edit(str(er) + "\n\n**Error**")
+            shutil.rmtree(f"ffmpeg/{UID}")
+            shutil.rmtree(f"encode/{UID}")
+            return
         
-
-        # Clean up resources
-        # Now Uploading to the User
+        # Continue with upload and cleanup process
         ees = dt.now()
-        
-        if (file.thumbs or c_thumb):
-            if c_thumb:
-                ph_path = await bot.download_media(c_thumb)
-            else:
-                ph_path = await bot.download_media(file.thumbs[0].file_id)
-
         org = int(Path(File_Path).stat().st_size)
         com = int((Path(Output_Path).stat().st_size))
         pe = 100 - ((com / org) * 100)
-        per = str(f"{pe:.2f}")  + "%"
+        per = str(f"{pe:.2f}") + "%"
         eees = dt.now()
         x = dtime
         xx = ts(int((ees - es).seconds) * 1000)
         xxx = ts(int((eees - ees).seconds) * 1000)
-        await ms.edit("⚠️__**Please wait...**__\n**Tʀyɪɴɢ Tᴏ Uᴩʟᴏᴀᴅɪɴɢ....**")
-        await bot.send_document(
-                UID,
-                document=Output_Path,
-                thumb=ph_path,
-                caption=Config.caption.format(filename, humanbytes(org), humanbytes(com) , per, x, xx, xxx),
-                progress=progress_for_pyrogram,
-                progress_args=("⚠️__**Please wait...**__\n🌨️ **Uᴩʟᴏᴅ Sᴛᴀʀᴛᴇᴅ....**", ms, time.time()))
         
+        await ms.edit("⚠️__**Please wait...**__\n🌨️ **Uᴩʟᴏᴀᴅ Sᴛᴀʀᴛᴇᴅ....**")
+        await bot.send_document(
+            UID,
+            document=Output_Path,
+            thumb=c_thumb,
+            caption=Config.caption.format(filename, humanbytes(org), humanbytes(com), per, x, xx, xxx),
+            progress=progress_for_pyrogram,
+            progress_args=("⚠️__**Please wait...**__\n🌨️ **Uᴩʟᴏᴀᴅ Sᴛᴀʀᴛᴇᴅ....**", ms, time.time())
+        )
+
         if query.message.chat.type == enums.ChatType.SUPERGROUP:
             botusername = await bot.get_me()
-            await ms.edit(f"Hey {query.from_user.mention},\n\nI Have Send Compressed File To Your Pm", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text="Bᴏᴛ Pᴍ", url=f'https://t.me/{botusername.username}')]]))
-            
+            await ms.edit(
+                f"Hey {query.from_user.mention},\n\nI Have Sent the Compressed File to Your PM",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text="Bᴏᴛ Pᴍ", url=f'https://t.me/{botusername.username}')]])
+            )
         else:
             await ms.delete()
 
