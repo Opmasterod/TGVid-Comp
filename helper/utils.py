@@ -181,6 +181,7 @@ async def skip(e, userid):
     
     return
 
+          
 async def CompressVideo(bot, query, ffmpegcode, c_thumb):
     UID = query.from_user.id
     ms = await query.message.edit('Pʟᴇᴀsᴇ Wᴀɪᴛ...\n\n**Fᴇᴛᴄʜɪɴɢ Qᴜᴇᴜᴇ 👥**')
@@ -265,9 +266,9 @@ async def CompressVideo(bot, query, ffmpegcode, c_thumb):
         xx = ts(int((ees - es).seconds) * 1000)
         xxx = ts(int((eees - ees).seconds) * 1000)
         await ms.edit("⚠️__**Please wait...**__\n**Tʀyɪɴɢ Tᴏ Uᴩʟᴏᴀᴅɪɴɢ....**")
-        await bot.send_video(
+        await bot.send_document(
                 UID,
-                video=Output_Path,
+                document=Output_Path,
                 thumb=ph_path,
                 caption=Config.caption.format(filename, humanbytes(org), humanbytes(com) , per, x, xx, xxx),
                 progress=progress_for_pyrogram,
