@@ -62,19 +62,11 @@ async def Cb_Handle(bot: Client, query: CallbackQuery):
         file = getattr(query.message.reply_to_message,
                        query.message.reply_to_message.media.value)
 
-        text = f"""**__Processing your file automatically...__**\n\n**File Name** :- `{filename}`\n\n**File Size** :- `{filesize}`"""
+        text = f"""**__What do you want me to do with this file.?__**\n\n**File Name** :- `{file.file_name}`\n\n**File Size** :- `{humanize.naturalsize(file.file_size)}`"""
+        buttons = [[InlineKeyboardButton("Rᴇɴᴀᴍᴇ 📝", callback_data=f"rename-{query.from_user.id}")],
+                   [InlineKeyboardButton("Cᴏᴍᴘʀᴇss 🗜️", callback_data=f"compress-{query.from_user.id}")]]
 
-    # Update the bot's message to notify the user
-         
-        await SnowDev.edit(text=text)
-
-    # Simulate automatic selection of "Compress" callback
-        
-        callback_data = f"compress-{query.from_user.id}"
-    
-    # Call the compression logic directly
-        
-        await handle_compression(callback_data, query, filename)
+        await query.message.edit(text=text, reply_markup=InlineKeyboardMarkup(buttons))
 
     elif data == 'setffmpeg':
         try:
@@ -119,7 +111,7 @@ async def Cb_Handle(bot: Client, query: CallbackQuery):
     elif data == '720pc':
         try:
             c_thumb = await db.get_thumbnail(query.from_user.id)
-            ffmpeg = "-preset veryfast -c:v libx264 -s 1280x720 -x265-params 'bframes=8:psy-rd=1:ref=3:aq-mode=3:aq-strength=0.8:deblock=1,1' -pix_fmt yuv420p -crf 25 -c:a libopus -b:a 32k -c:s copy -map 0 -ac 2 -ab 32k -vbr 2 -level 3.1 -threads 15"
+            ffmpeg = "-preset veryfast -c:v libx264 -s 1280x720 -x265-params 'bframes=8:psy-rd=1:ref=3:aq-mode=3:aq-strength=0.8:deblock=1,1' -pix_fmt yuv420p -crf 30 -c:a libopus -b:a 32k -c:s copy -map 0 -ac 2 -ab 32k -vbr 2 -level 3.1 -threads 5"
             await CompressVideo(bot=bot, query=query, ffmpegcode=ffmpeg, c_thumb=c_thumb)
 
         except Exception as e:
