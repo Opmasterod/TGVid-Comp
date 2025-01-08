@@ -187,7 +187,7 @@ async def CompressVideo(bot, query, ffmpegcode, c_thumb):
     ms = await query.message.edit('Pʟᴇᴀsᴇ Wᴀɪᴛ...\n\n**Fᴇᴛᴄʜɪɴɢ Qᴜᴇᴜᴇ 👥**')
     
     # Check for ffmpeg/{UID} and encode/{UID} existence with retries
-    max_retries = 5
+    max_retries = 50
     retry_count = 0
     while retry_count < max_retries:
         if os.path.isdir(f'ffmpeg/{UID}') or os.path.isdir(f'encode/{UID}'):
