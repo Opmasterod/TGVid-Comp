@@ -65,21 +65,9 @@ async def Files_Option(bot:Client, message:Message):
     try:
         text = f"""**__What do you want me to do with this file.?__**\n\n**File Name** :- `{filename}`\n\n**File Size** :- `{filesize}`"""
 
-        # Dictionary for storing markup based on user IDs
-    compress = {
-         message.from_user.id: InlineKeyboardMarkup([
-        [InlineKeyboardButton("Button Text", callback_data="action")]
-    ])
-}
-
-# Try to get the specific reply_markup, if it doesn't exist, set it to None
-        reply_markup = compress.get(message.from_user.id, None)
-
-# If you want to remove the buttons for the user, set reply_markup to None
-# Otherwise, it will use the existing markup for that user
-        await SnowDev.edit(text=text, reply_markup=reply_markup)
-
-
+        buttons = [[InlineKeyboardButton("Rᴇɴᴀᴍᴇ 📝", callback_data=f"rename-{message.from_user.id}")],
+                   [InlineKeyboardButton("Cᴏᴍᴘʀᴇss 🗜️", callback_data=f"compress-{message.from_user.id}")]]
+        await SnowDev.edit(text=text, reply_markup=InlineKeyboardMarkup(buttons))
         
     except FloodWait as e:
         
@@ -88,19 +76,10 @@ async def Files_Option(bot:Client, message:Message):
         await floodmsg.delete()
 
         text = f"""**__What do you want me to do with this file.?__**\n\n**File Name** :- `{filename}`\n\n**File Size** :- `{filesize}`"""
+        buttons = [[InlineKeyboardButton("Rᴇɴᴀᴍᴇ 📝", callback_data=f"rename-{message.from_user.id}")],
+                   [InlineKeyboardButton("Cᴏᴍᴘʀᴇss 🗜️", callback_data=f"compress-{message.from_user.id}")]]
+        await SnowDev.edit(text=text, reply_markup=InlineKeyboardMarkup(buttons))
 
-    compress = {
-         message.from_user.id: InlineKeyboardMarkup([
-        [InlineKeyboardButton("Button Text", callback_data="action")]
-    ])
-}
-
-# Try to get the specific reply_markup, if it doesn't exist, set it to None
-        reply_markup = compress.get(message.from_user.id, None)
-
-# If you want to remove the buttons for the user, set reply_markup to None
-# Otherwise, it will use the existing markup for that user
-        await SnowDev.edit(text=text, reply_markup=reply_markup)
     except Exception as e:
         print(e)
 
